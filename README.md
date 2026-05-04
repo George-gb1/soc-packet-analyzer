@@ -1,22 +1,26 @@
 # SOC Packet Analyzer
 
-## Overview
-A lightweight Python-based SOC tool that captures network traffic, analyzes IP behavior, and generates alerts for suspicious activity.
+A lightweight network traffic analyzer for SOC environments that detects suspicious activity including port scans and traffic anomalies.
 
-## eatures
-- Real-time packet capture using Scapy
-- IP-based traffic monitoring
-- Threshold-based alert detection
-- JSON logging for analysis
-- Lightweight SOC-style architecture
+## Features
+- Real-time packet capture (Scapy)
+- IP traffic volume monitoring
+- **Port scan detection** (identifies hosts scanning >10 ports)
+- JSON logging for SIEM integration
+- Configurable alert thresholds
 
-## How it works
-1. Captures live network packets
-2. Extracts source IP addresses
-3. Counts traffic per IP
-4. Triggers alert if threshold is exceeded
-5. Logs events into JSON file
+## How It Works
+1. Captures live IP packets
+2. Tracks packet count per source IP
+3. Monitors TCP port access patterns
+4. Triggers alerts for:
+   - Traffic spikes (>100 packets in window)
+   - Potential port scans (>10 unique ports from single IP)
 
-## How to run
+## Quick Start
+
 ```bash
+git clone https://github.com/George-gb1/soc-packet-analyzer
+cd soc-packet-analyzer
+pip install -r requirements.txt
 sudo python3 analyzer.py
