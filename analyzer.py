@@ -1,3 +1,11 @@
+# SOC Analyzer v5
+# Features:
+# - Packet detection
+# - Logging
+# - Time-based analysis
+# - Brute force detection
+# - Multi-IP attack detection
+
 import json
 from datetime import datetime, timedelta
 
