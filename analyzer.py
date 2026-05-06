@@ -1,40 +1,43 @@
-from scapy.all import *
 import json
-import time
+from datetime import datetime, timedelta
 
-print("[*] SOC Analyzer v4 Running...")
+print("[*] Advanced SOC Analyzer - Multi-IP Detection Running...")
 
-ip_count = {}
-THRESHOLD = 10
+events = []
 
-def log_event(data):
-    with open("soc_alerts.json", "a") as f:
-        f.write(json.dumps(data) + "\n")
+TIME_WINDOW = 10
+IP_THRESHOLD = 3
 
-def analyze(packet):
-    if packet.haslayer(IP):
-        src = packet[IP].src
+# Load alert events
+for line in open("soc_alerts.json", "r"):
+    event = json.loads(line)
 
-        if src in ip_count:
-            ip_count[src] += 1
+    if event["status"] != "ALERT":
+        continue
+
+    event_time = datetime.strptime(event["time"], "%Y-%m-%d %H:%M:%S")
+
+    events.append({
+        "ip": event["src_ip"],
+        "time": event_time
+    })
+
+# Sort by time
+events.sort(key=lambda x: x["time"])
+
+print("\n[!] Multi-IP Attack Detection:\n")
+
+for i in range(len(events)):
+    unique_ips = set()
+    base_time = events[i]["time"]
+
+    for j in range(i, len(events)):
+        if events[j]["time"] - base_time <= timedelta(seconds=TIME_WINDOW):
+            unique_ips.add(events[j]["ip"])
         else:
-            ip_count[src] = 1
+            break
 
-        count = ip_count[src]
-
-        event = {
-            "time": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "src_ip": src,
-            "count": count
-        }
-
-        if count > THRESHOLD:
-            event["status"] = "ALERT"
-            print(f"[ALERT] {src} → {count}")
-        else:
-            event["status"] = "NORMAL"
-            print(f"[NORMAL] {src} → {count}")
-
-        log_event(event)
-
-sniff(iface="eth0", prn=analyze, store=False)
+    if len(unique_ips) >= IP_THRESHOLD:
+        print(f"[CRITICAL] Distributed attack detected → {len(unique_ips)} IPs within {TIME_WINDOW}s")
+        print(f"IPs involved: {', '.join(unique_ips)}\n")
+        break
